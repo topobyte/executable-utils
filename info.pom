@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <name>Executable Utils</name>
+  <description>This project provides some helpers that come in handy when creating executables.</description>
+  <url>https://github.com/topobyte/executable-utils</url>
+</project>
