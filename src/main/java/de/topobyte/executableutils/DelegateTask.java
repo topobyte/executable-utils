@@ -31,7 +31,7 @@ public class DelegateTask
 	private String name;
 
 	private List<String> keys = new ArrayList<>();
-	private Map<String, Class<?>> classes = new HashMap<>();
+	private Map<String, DelegateClass> classes = new HashMap<>();
 
 	public DelegateTask(Executable exe, String name)
 	{
@@ -39,10 +39,34 @@ public class DelegateTask
 		this.name = name;
 	}
 
-	public void add(String name, Class<?> c)
+	/**
+	 * Add a named subcommand {@code name} that will run the specified class by
+	 * invoking its {@code main(String[] args)} method.
+	 * 
+	 * @param name
+	 *            the subcommand that can be used to invoke this subtask
+	 * @param c
+	 *            the class that implements the subtask
+	 */
+	public void addClassic(String name, Class<?> c)
 	{
 		keys.add(name);
-		classes.put(name, c);
+		classes.put(name, new DelegateClass(c, false));
+	}
+
+	/**
+	 * Add a named subcommand {@code name} that will run the specified class by
+	 * invoking its {@code main(String name, String[] args)} method.
+	 * 
+	 * @param name
+	 *            the subcommand that can be used to invoke this subtask
+	 * @param c
+	 *            the class that implements the subtask
+	 */
+	public void addWithName(String name, Class<?> c)
+	{
+		keys.add(name);
+		classes.put(name, new DelegateClass(c, true));
 	}
 
 	public void execute(String[] args)
@@ -53,7 +77,7 @@ public class DelegateTask
 			exe.exitFail();
 		}
 		String task = args[0];
-		Class<?> c = classes.get(task);
+		DelegateClass c = classes.get(task);
 		if (c == null) {
 			exe.printMessage(String.format(
 					"Unknown task '%s'. Please specifiy a valid task.", task));
@@ -61,16 +85,23 @@ public class DelegateTask
 			exe.exitFail();
 		}
 		try {
-			Method method = c.getMethod("main", String[].class);
+			Class<?> clazz = c.getClazz();
 			String[] taskArgs = new String[args.length - 1];
 			for (int i = 0; i < taskArgs.length; i++) {
 				taskArgs[i] = args[i + 1];
 			}
-			method.invoke(null, (Object) taskArgs);
+
+			if (!c.isPassName()) {
+				Method method = clazz.getMethod("main", String[].class);
+				method.invoke(null, (Object) taskArgs);
+			} else {
+				Method method = clazz.getMethod("main", String.class,
+						String[].class);
+				method.invoke(null, name + " " + task, taskArgs);
+			}
 		} catch (NoSuchMethodException | SecurityException
 				| IllegalAccessException | IllegalArgumentException e) {
-			exe.printMessageAndExitFail(
-					"Error while starting main method for task");
+			exe.printMessageAndExitFail("Error while starting main method for task");
 		} catch (InvocationTargetException e) {
 			e.getTargetException().printStackTrace();
 			exe.exitFail();

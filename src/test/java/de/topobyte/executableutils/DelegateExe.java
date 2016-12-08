@@ -25,8 +25,8 @@ public class DelegateExe
 		SystemOutExecutable exe = new SystemOutExecutable();
 		DelegateTask task = new DelegateTask(exe, "test");
 
-		task.add("task1", TestExe1.class);
-		task.add("task2", TestExe2.class);
+		task.addWithName("task1", TestExe1.class);
+		task.addWithName("task2", TestExe2.class);
 
 		return task;
 	}

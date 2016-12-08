@@ -22,6 +22,12 @@ public class TestExe1
 
 	public static void main(String[] args)
 	{
+		main(TestExe1.class.getSimpleName(), args);
+	}
+
+	public static void main(String name, String[] args)
+	{
+		System.out.println("name: " + name);
 		System.out.println("this is executable 1");
 	}
 
